@@ -1,0 +1,5 @@
+CREATE OR ALTER FUNCTION [Tools].[VARCHARtoXML] (@SQL VARCHAR(MAX))
+RETURNS TABLE
+AS
+  RETURN
+  SELECT [SQL] = (SELECT '--'+CHAR(13)+CHAR(10)+ (SELECT @SQL FOR XML PATH(''), TYPE).value ('.', 'varchar(max)') +CHAR(13)+CHAR(10)+'--' AS [processing-instruction(query)] FOR XML PATH(''), TYPE);
