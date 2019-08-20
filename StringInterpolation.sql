@@ -9,8 +9,10 @@ The table returns a single column: FormattedString
 
 EXAMPLE: 
 SELECT *
-FROM (SELECT [Name] = 'Steven', Adjective = 'internet person', Verb = 'writes helpful(?) SQL functions') [d]
-CROSS APPLY Tools.StringInterpolation ('{Steven} is a {Adjective} who {Verb}.', (SELECT [d].* FOR JSON PATH))
+FROM (SELECT [Name] = 'Steven', Adjective = 'internet person',        Verb = 'writes helpful(?) SQL functions'
+      UNION ALL
+      SELECT [Name] = 'Cat',    Adjective = 'wonderful wife and mom', Verb = 'wrangles Hibbles') [d]
+CROSS APPLY Tools.StringInterpolation ('{Name} is a {Adjective} who {Verb}.', (SELECT [d].* FOR JSON PATH))
 
 Name   | Adjective        | Verb                            | FormattedString
 -------+------------------+---------------------------------+-----------------------------------------------------------------
