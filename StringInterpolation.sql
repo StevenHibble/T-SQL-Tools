@@ -1,11 +1,12 @@
 CREATE OR ALTER FUNCTION [Tools].[StringInterpolation] 
- (@Template VARCHAR(8000)
+ (@Template VARCHAR(MAX)
 , @JSON_Row NVARCHAR(MAX))
 /*
 This function replaces a string template with actual values from a JSON-formatted row
 The table returns a single column: FormattedString
 
 ** Requires SQL Server 2017+ for STRING_AGG (could be rewritten using XML PATH)
+** Requires SQL Server 2016+ for JSON_VALUE (maybe you could use XML)
 
 EXAMPLE: 
 SELECT *
@@ -40,8 +41,8 @@ RETURNS TABLE
        -------------------
        /* Numbers "Table" CTE: 1) TOP has variable parameter = DATALENGTH(@Template), 2) Use ROW_NUMBER */
        [CTE_Numbers]
-       AS (SELECT TOP (ISNULL(DATALENGTH(@Template), 0)) [Number] = ROW_NUMBER() OVER(
-                                                         ORDER BY (SELECT NULL) )
+       AS (SELECT TOP (ISNULL(DATALENGTH(@Template), 0)) 
+                  [Number] = ROW_NUMBER() OVER(ORDER BY (SELECT NULL) )
            FROM [CTE_1000000]),
        -------------------
 
