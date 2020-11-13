@@ -1,0 +1,43 @@
+CREATE OR ALTER FUNCTION Tools.ScrubString
+(
+  @String        VARCHAR(8000)
+, @SubStringList VARCHAR(8000)
+, @Delimiter     VARCHAR(8000)
+)
+/*
+This function removes many substrings (in order) from a single string
+The table returns a single column: CleanString
+
+** Requires SQL Server 2017+ for STRING_AGG (could be rewritten using XML PATH)
+
+EXAMPLE: 
+SELECT *
+FROM Tools.ScrubString ('test me please', 'e,as', ',')
+
+CleanString
+-----------
+tst m pl
+
+NOTE: "as" is removed after "please" has become "plas", leaving "pl"
+*/ 
+RETURNS TABLE
+  RETURN
+  WITH Scrub_List_CTE
+       AS (SELECT ID
+                , String
+           FROM Tools.SplitString (@SubStringList, @Delimiter) ),
+       Replacements_CTE
+       AS (SELECT String = REPLACE(@String, String, '')
+                , ID
+           FROM Scrub_List_CTE
+           WHERE ID = 1
+           UNION ALL
+           SELECT String = REPLACE(r.String, s.String, '')
+                , s.ID
+           FROM Scrub_List_CTE s
+                JOIN Replacements_CTE r
+                  ON s.ID = r.ID + 1)
+       SELECT CleanString = String
+       FROM Replacements_CTE
+       WHERE ID = (SELECT SubstringCount + 1
+                     FROM Tools.CountSubstring (@SubStringList, @Delimiter) ); 
